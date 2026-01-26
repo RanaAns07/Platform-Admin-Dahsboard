@@ -157,7 +157,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                 subdomain: values.subdomain,
                 owner_email: values.owner_email,
                 owner_password: values.owner_password,
-                initial_plan_id: parseInt(values.initial_plan_id),
+                initial_plan_id: values.initial_plan_id,
             });
             toast.success("Tenant created successfully!");
             onClose();
@@ -419,7 +419,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                                                                 value={plan.id.toString()}
                                                             >
                                                                 <div className="flex items-center justify-between w-full">
-                                                                    <span>{plan.display_name || plan.name}</span>
+                                                                    <span>{plan.name}</span>
                                                                     <span className="text-muted-foreground ml-2">
                                                                         ${plan.price}/{plan.billing_cycle}
                                                                     </span>
@@ -439,18 +439,13 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
 
                                 {selectedPlan && (
                                     <div className="p-4 rounded-lg bg-muted/50 border">
-                                        <p className="font-medium">{selectedPlan.display_name}</p>
+                                        <p className="font-medium">{selectedPlan.name}</p>
                                         <p className="text-2xl font-bold mt-1">
                                             ${selectedPlan.price}
                                             <span className="text-sm font-normal text-muted-foreground">
                                                 /{selectedPlan.billing_cycle}
                                             </span>
                                         </p>
-                                        {selectedPlan.description && (
-                                            <p className="text-sm text-muted-foreground mt-2">
-                                                {selectedPlan.description}
-                                            </p>
-                                        )}
                                     </div>
                                 )}
                             </div>
@@ -477,7 +472,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                                     <div className="p-4">
                                         <p className="text-sm text-muted-foreground">Plan</p>
                                         <p className="font-medium">
-                                            {selectedPlan?.display_name || selectedPlan?.name} - $
+                                            {selectedPlan?.name} - $
                                             {selectedPlan?.price}/{selectedPlan?.billing_cycle}
                                         </p>
                                     </div>

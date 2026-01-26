@@ -6,7 +6,7 @@ import { Plan, PaginatedResponse } from '@/types';
 export const planKeys = {
     all: ['plans'] as const,
     lists: () => [...planKeys.all, 'list'] as const,
-    detail: (id: number) => [...planKeys.all, 'detail', id] as const,
+    detail: (id: string) => [...planKeys.all, 'detail', id] as const,
 };
 
 // Fetch all plans
@@ -25,7 +25,7 @@ export function usePlans() {
 }
 
 // Fetch single plan
-export function usePlan(id: number) {
+export function usePlan(id: string) {
     return useQuery({
         queryKey: planKeys.detail(id),
         queryFn: async () => {
@@ -36,14 +36,12 @@ export function usePlan(id: number) {
     });
 }
 
-// Create plan payload type
+// Create plan payload type - Backend only accepts: name, price, billing_cycle, is_public
 export interface CreatePlanPayload {
     name: string;
-    display_name: string;
     price: number;
-    billing_cycle: 'monthly' | 'yearly' | 'one_time';
-    description?: string;
-    is_active: boolean;
+    billing_cycle: 'monthly' | 'quarterly' | 'yearly';
+    is_public: boolean;
 }
 
 // Create plan mutation
@@ -66,7 +64,7 @@ export function useUpdatePlan() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, data }: { id: number; data: Partial<CreatePlanPayload> }) => {
+        mutationFn: async ({ id, data }: { id: string; data: Partial<CreatePlanPayload> }) => {
             const response = await api.patch<Plan>(`/v1/platform/plans/${id}/`, data);
             return response.data;
         },
@@ -82,7 +80,7 @@ export function useDeletePlan() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (id: number) => {
+        mutationFn: async (id: string) => {
             await api.delete(`/v1/platform/plans/${id}/`);
         },
         onSuccess: () => {

@@ -8,7 +8,7 @@ export const tenantKeys = {
     lists: () => [...tenantKeys.all, 'list'] as const,
     list: (filters: string) => [...tenantKeys.lists(), { filters }] as const,
     details: () => [...tenantKeys.all, 'detail'] as const,
-    detail: (id: number) => [...tenantKeys.details(), id] as const,
+    detail: (id: string) => [...tenantKeys.details(), id] as const,
 };
 
 // Fetch all tenants
@@ -27,7 +27,7 @@ export function useTenants() {
 }
 
 // Fetch single tenant
-export function useTenant(id: number) {
+export function useTenant(id: string) {
     return useQuery({
         queryKey: tenantKeys.detail(id),
         queryFn: async () => {
@@ -59,7 +59,7 @@ export function useAssignPlan() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ tenantId, planId }: { tenantId: number; planId: number }) => {
+        mutationFn: async ({ tenantId, planId }: { tenantId: string; planId: string }) => {
             const response = await api.post(`/v1/platform/tenants/${tenantId}/assign_plan/`, {
                 plan_id: planId,
             });
@@ -79,24 +79,55 @@ export function useSetOverride() {
     return useMutation({
         mutationFn: async ({
             tenantId,
-            featureCode,
-            enabled,
-            limitValue
+            featureId,
+            value,
+            expiresAt
         }: {
-            tenantId: number;
-            featureCode: string;
-            enabled: boolean;
-            limitValue?: number;
+            tenantId: string;
+            featureId: string;
+            value: boolean | number | string;  // Single value field
+            expiresAt?: string;
         }) => {
             const response = await api.post(`/v1/platform/tenants/${tenantId}/set_override/`, {
-                feature_code: featureCode,
-                enabled,
-                limit_value: limitValue,
+                feature_id: featureId,
+                value,
+                expires_at: expiresAt,
             });
             return response.data;
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: tenantKeys.detail(variables.tenantId) });
+            queryClient.invalidateQueries({ queryKey: tenantKeys.lists() });
+        },
+    });
+}
+
+// Update tenant mutation
+export function useUpdateTenant() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, data }: { id: string; data: Partial<Tenant> }) => {
+            const response = await api.patch<Tenant>(`/v1/platform/tenants/${id}/`, data);
+            return response.data;
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: tenantKeys.detail(variables.id) });
+            queryClient.invalidateQueries({ queryKey: tenantKeys.lists() });
+        },
+    });
+}
+
+// Delete tenant mutation
+export function useDeleteTenant() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: string) => {
+            await api.delete(`/v1/platform/tenants/${id}/`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: tenantKeys.lists() });
         },
     });
 }

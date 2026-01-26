@@ -57,19 +57,20 @@ import {
     Calendar,
     Zap,
 } from "lucide-react";
+import { ApiError } from "@/types";
+import { toast } from "sonner";
 
-// Billing cycle labels
 const billingCycleLabels = {
     monthly: "Monthly",
+    quarterly: "Quarterly",
     yearly: "Yearly",
-    one_time: "One Time",
 };
 
 // Billing cycle colors
 const billingCycleColors = {
     monthly: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+    quarterly: "bg-purple-500/10 text-purple-700 dark:text-purple-400",
     yearly: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-    one_time: "bg-purple-500/10 text-purple-700 dark:text-purple-400",
 };
 
 export default function PlansPage() {
@@ -105,10 +106,7 @@ export default function PlansPage() {
                             <CreditCard className="h-4 w-4 text-emerald-500" />
                         </div>
                         <div>
-                            <p className="font-medium">{row.getValue("display_name") || row.original.name}</p>
-                            <code className="text-xs text-muted-foreground">
-                                {row.original.name}
-                            </code>
+                            <p className="font-medium">{row.original.name}</p>
                         </div>
                     </div>
                 );
@@ -151,29 +149,29 @@ export default function PlansPage() {
             },
         },
         {
-            accessorKey: "features",
-            header: "Features",
+            accessorKey: "entitlements",
+            header: "Entitlements",
             cell: ({ row }) => {
-                const features = row.original.features;
-                const count = features?.length || 0;
+                const entitlements = row.original.entitlements;
+                const count = entitlements?.length || 0;
                 return (
                     <div className="flex items-center gap-1.5">
                         <Zap className="h-4 w-4 text-purple-500" />
                         <span className="text-sm">
-                            {count} {count === 1 ? "feature" : "features"}
+                            {count} {count === 1 ? "entitlement" : "entitlements"}
                         </span>
                     </div>
                 );
             },
         },
         {
-            accessorKey: "is_active",
+            accessorKey: "is_public",
             header: "Status",
             cell: ({ row }) => {
-                const isActive = row.getValue("is_active");
+                const isPublic = row.getValue("is_public");
                 return (
-                    <Badge variant={isActive ? "success" : "destructive"}>
-                        {isActive ? "Active" : "Inactive"}
+                    <Badge variant={isPublic ? "success" : "destructive"}>
+                        {isPublic ? "Public" : "Private"}
                     </Badge>
                 );
             },
@@ -242,7 +240,8 @@ export default function PlansPage() {
                 setDeleteDialogOpen(false);
                 setPlanToDelete(null);
             } catch (error) {
-                console.error("Failed to delete plan:", error);
+                const apiError = error as ApiError;
+                toast.error(apiError.message || "Failed to delete plan");
             }
         }
     };
@@ -407,7 +406,7 @@ export default function PlansPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Plan</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete &quot;{planToDelete?.display_name || planToDelete?.name}&quot;?
+                            Are you sure you want to delete &quot;{planToDelete?.name}&quot;?
                             This action cannot be undone and may affect tenants using this plan.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

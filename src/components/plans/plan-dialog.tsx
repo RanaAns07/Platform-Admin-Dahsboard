@@ -29,29 +29,21 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { useCreatePlan, useUpdatePlan } from "@/hooks/use-plans";
-import { Plan } from "@/types";
+import { Plan, ApiError } from "@/types";
 import { Loader2, CreditCard } from "lucide-react";
+import { toast } from "sonner";
 
-// Form schema
+// Form schema - Backend only accepts: name, price, billing_cycle, is_public
 const planSchema = z.object({
     name: z
         .string()
         .min(2, "Name must be at least 2 characters")
-        .max(50, "Name must be less than 50 characters")
-        .regex(
-            /^[a-z][a-z0-9_]*$/,
-            "Name must start with a letter and contain only lowercase letters, numbers, and underscores"
-        ),
-    display_name: z
-        .string()
-        .min(2, "Display name must be at least 2 characters")
-        .max(100, "Display name must be less than 100 characters"),
+        .max(100, "Name must be less than 100 characters"),
     price: z
         .string()
         .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, "Price must be a valid positive number"),
-    billing_cycle: z.enum(["monthly", "yearly", "one_time"]),
-    description: z.string().optional(),
-    is_active: z.boolean(),
+    billing_cycle: z.enum(["monthly", "quarterly", "yearly"]),
+    is_public: z.boolean(),
 });
 
 type PlanFormValues = z.infer<typeof planSchema>;
@@ -71,11 +63,9 @@ export function PlanDialog({ open, onOpenChange, plan }: PlanDialogProps) {
         resolver: zodResolver(planSchema),
         defaultValues: {
             name: plan?.name || "",
-            display_name: plan?.display_name || "",
             price: plan?.price?.toString() || "0",
             billing_cycle: plan?.billing_cycle || "monthly",
-            description: plan?.description || "",
-            is_active: plan?.is_active ?? true,
+            is_public: plan?.is_public ?? true,
         },
     });
 
@@ -84,32 +74,19 @@ export function PlanDialog({ open, onOpenChange, plan }: PlanDialogProps) {
         if (!newOpen) {
             form.reset({
                 name: "",
-                display_name: "",
                 price: "0",
                 billing_cycle: "monthly",
-                description: "",
-                is_active: true,
+                is_public: true,
             });
         } else if (plan) {
             form.reset({
                 name: plan.name,
-                display_name: plan.display_name,
                 price: plan.price?.toString() || "0",
                 billing_cycle: plan.billing_cycle,
-                description: plan.description || "",
-                is_active: plan.is_active,
+                is_public: plan.is_public,
             });
         }
         onOpenChange(newOpen);
-    };
-
-    // Generate name from display name
-    const generateName = (displayName: string) => {
-        return displayName
-            .toLowerCase()
-            .replace(/[^a-z0-9\s_]/g, "")
-            .replace(/\s+/g, "_")
-            .slice(0, 50);
     };
 
     const onSubmit = async (values: PlanFormValues) => {
@@ -124,12 +101,17 @@ export function PlanDialog({ open, onOpenChange, plan }: PlanDialogProps) {
                     id: plan.id,
                     data: payload,
                 });
+                toast.success("Plan updated successfully!");
             } else {
                 await createPlan.mutateAsync(payload);
+                toast.success("Plan created successfully!");
             }
             handleOpenChange(false);
         } catch (error) {
-            console.error("Failed to save plan:", error);
+            const apiError = error as ApiError;
+            const errorMessage = apiError?.message || "Failed to save plan. Please try again.";
+            console.error("Failed to save plan:", errorMessage);
+            toast.error(errorMessage);
         }
     };
 
@@ -156,43 +138,19 @@ export function PlanDialog({ open, onOpenChange, plan }: PlanDialogProps) {
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
                             control={form.control}
-                            name="display_name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Display Name</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="e.g., Pro Plan"
-                                            {...field}
-                                            onChange={(e) => {
-                                                field.onChange(e);
-                                                if (!isEditing) {
-                                                    const name = generateName(e.target.value);
-                                                    form.setValue("name", name);
-                                                }
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Plan Code</FormLabel>
+                                    <FormLabel>Plan Name</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="pro_plan"
+                                            placeholder="e.g., Basic, Pro, Enterprise"
                                             {...field}
                                             disabled={isEditing}
                                         />
                                     </FormControl>
                                     <FormDescription>
-                                        Unique identifier used in the system
+                                        Unique identifier for this plan
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -237,8 +195,8 @@ export function PlanDialog({ open, onOpenChange, plan }: PlanDialogProps) {
                                             </FormControl>
                                             <SelectContent>
                                                 <SelectItem value="monthly">Monthly</SelectItem>
+                                                <SelectItem value="quarterly">Quarterly</SelectItem>
                                                 <SelectItem value="yearly">Yearly</SelectItem>
-                                                <SelectItem value="one_time">One Time</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -249,41 +207,27 @@ export function PlanDialog({ open, onOpenChange, plan }: PlanDialogProps) {
 
                         <FormField
                             control={form.control}
-                            name="description"
+                            name="is_public"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Description</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Brief description of the plan"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="is_active"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Status</FormLabel>
+                                    <FormLabel>Visibility</FormLabel>
                                     <Select
                                         onValueChange={(value) => field.onChange(value === "true")}
                                         value={field.value ? "true" : "false"}
                                     >
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select status" />
+                                                <SelectValue placeholder="Select visibility" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="true">Active</SelectItem>
-                                            <SelectItem value="false">Inactive</SelectItem>
+                                            <SelectItem value="true">Public</SelectItem>
+                                            <SelectItem value="false">Private</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    <FormDescription>
+                                        Public plans are visible to new tenants
+                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}

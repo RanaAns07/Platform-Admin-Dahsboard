@@ -6,7 +6,7 @@ import { Feature, PaginatedResponse } from '@/types';
 export const featureKeys = {
     all: ['features'] as const,
     lists: () => [...featureKeys.all, 'list'] as const,
-    detail: (id: number) => [...featureKeys.all, 'detail', id] as const,
+    detail: (id: string) => [...featureKeys.all, 'detail', id] as const,
 };
 
 // Fetch all features
@@ -25,7 +25,7 @@ export function useFeatures() {
 }
 
 // Fetch single feature
-export function useFeature(id: number) {
+export function useFeature(id: string) {
     return useQuery({
         queryKey: featureKeys.detail(id),
         queryFn: async () => {
@@ -36,13 +36,11 @@ export function useFeature(id: number) {
     });
 }
 
-// Create feature payload type
+// Create feature payload type - Backend only accepts: key, description, data_type
 export interface CreateFeaturePayload {
-    name: string;
-    code: string;
+    key: string;
     description?: string;
-    feature_type: 'boolean' | 'limit' | 'tier';
-    is_active: boolean;
+    data_type: 'bool' | 'int' | 'string';
 }
 
 // Create feature mutation
@@ -65,7 +63,7 @@ export function useUpdateFeature() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, data }: { id: number; data: Partial<CreateFeaturePayload> }) => {
+        mutationFn: async ({ id, data }: { id: string; data: Partial<CreateFeaturePayload> }) => {
             const response = await api.patch<Feature>(`/v1/platform/features/${id}/`, data);
             return response.data;
         },
@@ -81,7 +79,7 @@ export function useDeleteFeature() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (id: number) => {
+        mutationFn: async (id: string) => {
             await api.delete(`/v1/platform/features/${id}/`);
         },
         onSuccess: () => {

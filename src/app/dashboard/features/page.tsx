@@ -45,6 +45,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FeatureDialog } from "@/components/features/feature-dialog";
+import { toast } from "sonner";
+import { ApiError } from "@/types";
 import {
     Plus,
     Search,
@@ -59,18 +61,18 @@ import {
     Layers,
 } from "lucide-react";
 
-// Feature type icons
-const featureTypeIcons = {
-    boolean: ToggleLeft,
-    limit: Hash,
-    tier: Layers,
+// Data type icons
+const dataTypeIcons = {
+    bool: ToggleLeft,
+    int: Hash,
+    string: Layers,
 };
 
-// Feature type labels
-const featureTypeLabels = {
-    boolean: "Boolean",
-    limit: "Limit",
-    tier: "Tier",
+// Data type labels
+const dataTypeLabels = {
+    bool: "Boolean",
+    int: "Integer",
+    string: "String",
 };
 
 export default function FeaturesPage() {
@@ -86,7 +88,7 @@ export default function FeaturesPage() {
     // Table columns definition
     const columns: ColumnDef<Feature>[] = [
         {
-            accessorKey: "name",
+            accessorKey: "key",
             header: ({ column }) => {
                 return (
                     <Button
@@ -94,7 +96,7 @@ export default function FeaturesPage() {
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                         className="hover:bg-transparent px-0"
                     >
-                        Feature Name
+                        Feature Key
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                 );
@@ -106,7 +108,7 @@ export default function FeaturesPage() {
                             <Zap className="h-4 w-4 text-purple-500" />
                         </div>
                         <div>
-                            <p className="font-medium">{row.getValue("name")}</p>
+                            <code className="font-medium">{row.getValue("key")}</code>
                             {row.original.description && (
                                 <p className="text-xs text-muted-foreground line-clamp-1">
                                     {row.original.description}
@@ -118,40 +120,20 @@ export default function FeaturesPage() {
             },
         },
         {
-            accessorKey: "code",
-            header: "Code",
-            cell: ({ row }) => (
-                <code className="px-2 py-1 bg-muted rounded text-xs">
-                    {row.getValue("code")}
-                </code>
-            ),
-        },
-        {
-            accessorKey: "feature_type",
+            accessorKey: "data_type",
             header: "Type",
             cell: ({ row }) => {
-                const type = row.getValue("feature_type") as keyof typeof featureTypeIcons;
-                const Icon = featureTypeIcons[type] || Zap;
+                const type = row.getValue("data_type") as keyof typeof dataTypeIcons;
+                const Icon = dataTypeIcons[type] || Zap;
                 return (
                     <div className="flex items-center gap-2">
                         <Icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{featureTypeLabels[type] || type}</span>
+                        <span className="text-sm">{dataTypeLabels[type] || type}</span>
                     </div>
                 );
             },
         },
-        {
-            accessorKey: "is_active",
-            header: "Status",
-            cell: ({ row }) => {
-                const isActive = row.getValue("is_active");
-                return (
-                    <Badge variant={isActive ? "success" : "destructive"}>
-                        {isActive ? "Active" : "Inactive"}
-                    </Badge>
-                );
-            },
-        },
+
         {
             id: "actions",
             header: "",
@@ -216,7 +198,8 @@ export default function FeaturesPage() {
                 setDeleteDialogOpen(false);
                 setFeatureToDelete(null);
             } catch (error) {
-                console.error("Failed to delete feature:", error);
+                const apiError = error as ApiError;
+                toast.error(apiError.message || "Failed to delete feature");
             }
         }
     };
@@ -257,9 +240,9 @@ export default function FeaturesPage() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 placeholder="Search features..."
-                                value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+                                value={(table.getColumn("key")?.getFilterValue() as string) ?? ""}
                                 onChange={(event) =>
-                                    table.getColumn("name")?.setFilterValue(event.target.value)
+                                    table.getColumn("key")?.setFilterValue(event.target.value)
                                 }
                                 className="pl-9"
                             />
@@ -381,7 +364,7 @@ export default function FeaturesPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Feature</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete &quot;{featureToDelete?.name}&quot;? This action
+                            Are you sure you want to delete &quot;{featureToDelete?.key}&quot;? This action
                             cannot be undone and may affect plans that use this feature.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

@@ -26,7 +26,7 @@ export default function DashboardPage() {
             title: "Active Tenants",
             value: tenantsLoading
                 ? "..."
-                : tenants?.filter((t) => t.is_active).length || 0,
+                : tenants?.filter((t) => t.current_subscription?.status === 'active').length || 0,
             description: "Currently active subscriptions",
             icon: <Users className="h-5 w-5" />,
             color: "text-emerald-500",

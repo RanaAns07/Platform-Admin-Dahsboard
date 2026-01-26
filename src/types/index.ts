@@ -28,17 +28,22 @@ export interface LoginCredentials {
 
 // Tenant (Gym) types
 export interface Tenant {
-    id: number;
-    gym_name: string;
+    id: string;
+    name: string;  // Backend uses 'name', not 'gym_name'
     subdomain: string;
-    owner?: User;
-    owner_email?: string;
-    current_plan?: Plan;
-    current_plan_id?: number;
+    branding?: Record<string, unknown>;
     is_active: boolean;
     created_at: string;
-    updated_at?: string;
-    feature_overrides?: FeatureOverride[];
+    current_subscription?: TenantSubscription;
+}
+
+export interface TenantSubscription {
+    id: string;
+    plan: string;
+    plan_name: string;
+    status: 'active' | 'past_due' | 'canceled';
+    started_at: string;
+    ends_at?: string;
 }
 
 export interface CreateTenantPayload {
@@ -46,45 +51,42 @@ export interface CreateTenantPayload {
     subdomain: string;
     owner_email: string;
     owner_password: string;
-    initial_plan_id: number;
+    initial_plan_id: string;
 }
 
 // Plan types
 export interface Plan {
-    id: number;
+    id: string;
     name: string;
-    display_name: string;
     price: string | number;
-    billing_cycle: 'monthly' | 'yearly' | 'one_time';
-    description?: string;
-    is_active: boolean;
-    features?: PlanFeature[];
+    billing_cycle: 'monthly' | 'quarterly' | 'yearly';
+    is_public: boolean;
+    entitlements?: PlanEntitlement[];
 }
 
-export interface PlanFeature {
-    feature_id: number;
-    feature_name: string;
-    enabled: boolean;
-    limit?: number;
+export interface PlanEntitlement {
+    id: string;
+    feature: string;
+    feature_key: string;
+    value: unknown;  // Can be boolean, number, or string based on feature data_type
 }
+
+
 
 // Feature types
 export interface Feature {
-    id: number;
-    name: string;
-    code: string;
+    id: string;
+    key: string;  // Primary identifier, no 'name' or 'code'
     description?: string;
-    is_active: boolean;
-    feature_type: 'boolean' | 'limit' | 'tier';
+    data_type: 'bool' | 'int' | 'string';
+    created_at?: string;
 }
 
 export interface FeatureOverride {
-    id: number;
-    tenant_id: number;
-    feature_id: number;
-    feature_code: string;
-    enabled: boolean;
-    limit_value?: number;
+    id: string;
+    feature: string;
+    feature_key: string;
+    value: unknown;  // Can be boolean, number, or string
     expires_at?: string;
 }
 
