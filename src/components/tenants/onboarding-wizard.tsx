@@ -132,7 +132,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
 
     // Validate current step before proceeding
     const validateStep = async () => {
-        let fieldsToValidate: (keyof WizardFormValues)[] = [];
+        let fieldsToValidate: any = [];
 
         switch (currentStep) {
             case 1:
@@ -142,7 +142,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                 fieldsToValidate = ["branding.primary_color", "branding.secondary_color", "branding.logo_url", "branding.font_family"];
                 break;
             case 3:
-                fieldsToValidate = ("owner_email", "owner_password", "confirm_password" as any);
+                fieldsToValidate = ["owner_email", "owner_password", "confirm_password"];
                 break;
             case 4:
                 fieldsToValidate = ["initial_plan_id"];
