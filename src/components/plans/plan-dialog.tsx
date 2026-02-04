@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -86,16 +87,8 @@ export function PlanDialog({ open, onOpenChange, plan }: PlanDialogProps) {
     });
 
     // Reset form when plan changes
-    const handleOpenChange = (newOpen: boolean) => {
-        if (!newOpen) {
-            form.reset({
-                name: "",
-                price: "0",
-                billing_cycle: "monthly",
-                is_public: true,
-                entitlements: [],
-            });
-        } else if (plan) {
+    useEffect(() => {
+        if (open && plan) {
             form.reset({
                 name: plan.name,
                 price: plan.price?.toString() || "0",
@@ -106,7 +99,18 @@ export function PlanDialog({ open, onOpenChange, plan }: PlanDialogProps) {
                     value: e.value
                 })) || [],
             });
+        } else if (!open) {
+            form.reset({
+                name: "",
+                price: "0",
+                billing_cycle: "monthly",
+                is_public: true,
+                entitlements: [],
+            });
         }
+    }, [open, plan, form]);
+
+    const handleOpenChange = (newOpen: boolean) => {
         onOpenChange(newOpen);
     };
 
