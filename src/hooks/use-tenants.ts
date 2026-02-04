@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { Tenant, CreateTenantPayload, PaginatedResponse } from '@/types';
+import { Tenant, CreateTenantPayload, UpdateTenantPayload, PaginatedResponse } from '@/types';
 
 // Query keys
 export const tenantKeys = {
@@ -19,9 +19,15 @@ export function useTenants() {
             const response = await api.get<PaginatedResponse<Tenant> | Tenant[]>('/v1/platform/tenants/');
             // Handle both paginated and non-paginated responses
             if ('results' in response.data) {
-                return response.data.results;
+                return {
+                    results: response.data.results,
+                    total: response.data.count
+                };
             }
-            return response.data;
+            return {
+                results: response.data,
+                total: response.data.length
+            };
         },
     });
 }
@@ -85,13 +91,13 @@ export function useSetOverride() {
         }: {
             tenantId: string;
             featureId: string;
-            value: boolean | number | string;  // Single value field
+            value: boolean | number | string;
             expiresAt?: string;
         }) => {
             const response = await api.post(`/v1/platform/tenants/${tenantId}/set_override/`, {
                 feature_id: featureId,
                 value,
-                expires_at: expiresAt,
+                expires_at: expiresAt || new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(),
             });
             return response.data;
         },
@@ -107,7 +113,7 @@ export function useUpdateTenant() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, data }: { id: string; data: Partial<Tenant> }) => {
+        mutationFn: async ({ id, data }: { id: string; data: UpdateTenantPayload }) => {
             const response = await api.patch<Tenant>(`/v1/platform/tenants/${id}/`, data);
             return response.data;
         },
@@ -124,7 +130,10 @@ export function useDeleteTenant() {
 
     return useMutation({
         mutationFn: async (id: string) => {
-            await api.delete(`/v1/platform/tenants/${id}/`);
+            console.log(`Deleting tenant with ID: ${id}`);
+            const url = `/v1/platform/tenants/${id}/`;
+            console.log(`Final delete URL: ${url}`);
+            await api.delete(url);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: tenantKeys.lists() });

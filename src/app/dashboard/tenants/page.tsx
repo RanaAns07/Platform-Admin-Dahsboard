@@ -178,13 +178,24 @@ export default function TenantsPage() {
                 );
             },
             cell: ({ row }: any) => {
+                const branding = row.original.branding;
                 return (
                     <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                            <Building2 className="h-4 w-4 text-orange-500" />
+                        <div
+                            className="h-9 w-9 rounded-lg flex items-center justify-center border transition-all"
+                            style={{
+                                backgroundColor: branding?.primary_color ? `${branding.primary_color}1a` : 'rgba(249, 115, 22, 0.1)',
+                                borderColor: branding?.primary_color || '#f97316'
+                            }}
+                        >
+                            {branding?.logo_url ? (
+                                <img src={branding.logo_url} alt="" className="h-6 w-6 object-contain" />
+                            ) : (
+                                <Building2 className="h-4 w-4" style={{ color: branding?.primary_color || '#f97316' }} />
+                            )}
                         </div>
                         <div>
-                            <p className="font-medium">{row.getValue("name")}</p>
+                            <p className="font-medium">{row.getValue("name") || row.original.gym_name}</p>
                             <p className="text-xs text-muted-foreground">
                                 {row.original.subdomain}.forwardthinkingfitness.com
                             </p>
@@ -266,7 +277,7 @@ export default function TenantsPage() {
     ];
 
     const table = useReactTable({
-        data: tenants || [],
+        data: tenants?.results || [],
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -308,7 +319,7 @@ export default function TenantsPage() {
                         <div>
                             <CardTitle className="text-lg">All Gyms</CardTitle>
                             <CardDescription>
-                                {tenants?.length || 0} total tenants registered
+                                {tenants?.total || 0} total tenants registered
                             </CardDescription>
                         </div>
                         <div className="relative w-full sm:w-72">

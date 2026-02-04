@@ -5,6 +5,8 @@ import { QueryProvider } from "@/lib/query-client";
 import { AuthProvider } from "@/contexts/auth-context";
 import { Toaster } from "sonner";
 
+import { ThemeProvider } from "@/components/theme-provider";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -12,9 +14,15 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Forward Thinking Fitness | Platform Admin",
-  description: "Enterprise Mission Control Dashboard for Forward Thinking Fitness Multi-Tenant SaaS Platform",
-  keywords: ["fitness", "gym", "saas", "platform", "admin", "dashboard"],
+  title: "LookFitter | Platform Admin",
+  description: "Enterprise Mission Control Dashboard for LookFitter Multi-Tenant SaaS Platform",
+  keywords: ["fitness", "gym", "saas", "platform", "admin", "dashboard", "LookFitter"],
+  icons: {
+    icon: [
+      { url: "/lookfitter Light.png" },
+      { url: "/lookfitter Dark.png", media: "(prefers-color-scheme: dark)" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -25,12 +33,19 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
-        <QueryProvider>
-          <AuthProvider>
-            {children}
-            <Toaster position="top-right" richColors closeButton />
-          </AuthProvider>
-        </QueryProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryProvider>
+            <AuthProvider>
+              {children}
+              <Toaster position="top-right" richColors closeButton />
+            </AuthProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

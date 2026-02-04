@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, LoginCredentials, LoginResponse } from '@/types';
-import api, { setTokens, clearTokens, getAccessToken } from '@/lib/api';
+import api, { setTokens, clearTokens, getAccessToken, getRefreshToken } from '@/lib/api';
+import axios from 'axios';
 
 interface AuthContextType {
     user: User | null;
@@ -21,7 +22,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const checkAuth = useCallback(async () => {
         const token = getAccessToken();
-        if (!token) {
+        const refreshToken = getRefreshToken();
+
+        if (!token && !refreshToken) {
             setUser(null);
             setIsLoading(false);
             return;
@@ -31,8 +34,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Verify token by fetching user profile
             const response = await api.get<User>('/v1/users/auth/me/');
             setUser(response.data);
-        } catch {
-            // Token invalid, clear it
+        } catch (error: any) {
+            // If it's a 401, the axios interceptor might have already tried refreshing.
+            // But if it reached here with an error, it means refresh failed or 
+            // the initial request failed and wasn't retried for some reason.
+
+            // If we have a refresh token but no user, the interceptor might still be working
+            // or it might have failed. Let's check if we now have a token (from a successful refresh)
+            const newToken = getAccessToken();
+            if (newToken && newToken !== token) {
+                try {
+                    const retryResponse = await api.get<User>('/v1/users/auth/me/');
+                    setUser(retryResponse.data);
+                    return;
+                } catch {
+                    // Fall through to cleanup
+                }
+            }
+
+            // Token invalid or refresh failed, clear it
             clearTokens();
             setUser(null);
         } finally {
@@ -55,6 +75,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Set user
             setUser(userData);
+        } catch (error) {
+            console.error('Login failed:', error);
+            throw error;
         } finally {
             setIsLoading(false);
         }

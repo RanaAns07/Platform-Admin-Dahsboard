@@ -17,9 +17,15 @@ export function usePlans() {
             const response = await api.get<PaginatedResponse<Plan> | Plan[]>('/v1/platform/plans/');
             // Handle both paginated and non-paginated responses
             if ('results' in response.data) {
-                return response.data.results;
+                return {
+                    results: response.data.results,
+                    total: response.data.count
+                };
             }
-            return response.data;
+            return {
+                results: response.data,
+                total: response.data.length
+            };
         },
     });
 }
@@ -36,12 +42,16 @@ export function usePlan(id: string) {
     });
 }
 
-// Create plan payload type - Backend only accepts: name, price, billing_cycle, is_public
+// Create plan payload type - Backend accepts: name, price, billing_cycle, is_public, entitlements
 export interface CreatePlanPayload {
     name: string;
     price: number;
     billing_cycle: 'monthly' | 'quarterly' | 'yearly';
     is_public: boolean;
+    entitlements: {
+        feature: string;
+        value: any;
+    }[];
 }
 
 // Create plan mutation

@@ -16,7 +16,7 @@ export default function DashboardPage() {
     const stats = [
         {
             title: "Total Tenants",
-            value: tenantsLoading ? "..." : tenants?.length || 0,
+            value: tenantsLoading ? "..." : tenants?.total || 0,
             description: "Registered gyms on the platform",
             icon: <Building2 className="h-5 w-5" />,
             color: "text-blue-500",
@@ -26,15 +26,15 @@ export default function DashboardPage() {
             title: "Active Tenants",
             value: tenantsLoading
                 ? "..."
-                : tenants?.filter((t) => t.current_subscription?.status === 'active').length || 0,
-            description: "Currently active subscriptions",
+                : (tenants?.results?.filter((t: any) => t.is_active).length || 0),
+            description: "Currently active gyms",
             icon: <Users className="h-5 w-5" />,
             color: "text-emerald-500",
             bgColor: "bg-emerald-500/10",
         },
         {
             title: "Available Plans",
-            value: plansLoading ? "..." : plans?.length || 0,
+            value: plansLoading ? "..." : plans?.total || 0,
             description: "Subscription plans offered",
             icon: <CreditCard className="h-5 w-5" />,
             color: "text-purple-500",
@@ -42,7 +42,7 @@ export default function DashboardPage() {
         },
         {
             title: "Total Features",
-            value: featuresLoading ? "..." : features?.length || 0,
+            value: featuresLoading ? "..." : features?.total || 0,
             description: "Platform capabilities available",
             icon: <Zap className="h-5 w-5" />,
             color: "text-orange-500",
@@ -84,54 +84,15 @@ export default function DashboardPage() {
                 ))}
             </div>
 
-            {/* Quick Actions */}
-            <div className="grid gap-4 md:grid-cols-2">
-                <Card className="border-none shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="text-lg">Quick Actions</CardTitle>
-                        <CardDescription>
-                            Common tasks for platform management
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        <a
-                            href="/dashboard/tenants"
-                            className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                        >
-                            <div className="p-2 rounded-lg bg-orange-500/10">
-                                <Building2 className="h-4 w-4 text-orange-500" />
-                            </div>
-                            <div>
-                                <p className="font-medium text-sm">Add New Tenant</p>
-                                <p className="text-xs text-muted-foreground">
-                                    Onboard a new gym to the platform
-                                </p>
-                            </div>
-                        </a>
-                        <a
-                            href="/dashboard/plans"
-                            className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                        >
-                            <div className="p-2 rounded-lg bg-purple-500/10">
-                                <CreditCard className="h-4 w-4 text-purple-500" />
-                            </div>
-                            <div>
-                                <p className="font-medium text-sm">Manage Plans</p>
-                                <p className="text-xs text-muted-foreground">
-                                    View and edit subscription plans
-                                </p>
-                            </div>
-                        </a>
-                    </CardContent>
-                </Card>
-
+            {/* Platform Status */}
+            <div className="grid gap-4">
                 <Card className="border-none shadow-sm">
                     <CardHeader>
                         <CardTitle className="text-lg">Platform Status</CardTitle>
                         <CardDescription>System health and notifications</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 max-w-md">
                             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                             <div>
                                 <p className="font-medium text-sm text-emerald-700 dark:text-emerald-400">
@@ -142,7 +103,7 @@ export default function DashboardPage() {
                                 </p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <div className="p-3 rounded-lg bg-muted/50 text-center">
                                 <p className="text-2xl font-bold text-foreground">99.9%</p>
                                 <p className="text-xs text-muted-foreground">Uptime</p>

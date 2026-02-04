@@ -11,7 +11,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, LogOut, Menu, User } from "lucide-react";
+import { Bell, LogOut, Menu, User, Settings } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface HeaderProps {
     title: string;
@@ -28,7 +29,7 @@ export function Header({ title, onMenuClick }: HeaderProps) {
     };
 
     return (
-        <header className="sticky top-0 z-30 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-30 h-16 border-b bg-background/60 backdrop-blur-xl border-border/40">
             <div className="flex h-full items-center justify-between px-4 md:px-6">
                 {/* Left side - Menu button and Title */}
                 <div className="flex items-center gap-4">
@@ -43,17 +44,17 @@ export function Header({ title, onMenuClick }: HeaderProps) {
                             <span className="sr-only">Toggle menu</span>
                         </Button>
                     )}
-                    <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+                    <h1 className="text-xl font-bold tracking-tight text-foreground">{title}</h1>
                 </div>
 
                 {/* Right side - Notifications and Profile */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                    <ThemeToggle />
+
                     {/* Notifications */}
                     <Button variant="ghost" size="icon" className="relative">
                         <Bell className="h-5 w-5" />
-                        <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-orange-500 text-[10px] font-medium text-white flex items-center justify-center">
-                            3
-                        </span>
+                        <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background"></span>
                         <span className="sr-only">Notifications</span>
                     </Button>
 
@@ -62,10 +63,10 @@ export function Header({ title, onMenuClick }: HeaderProps) {
                         <DropdownMenuTrigger asChild>
                             <Button
                                 variant="ghost"
-                                className="relative flex items-center gap-2 px-2 hover:bg-accent"
+                                className="relative flex items-center gap-2 p-1 hover:bg-accent/50 rounded-full"
                             >
-                                <Avatar className="h-8 w-8">
-                                    <AvatarFallback className="bg-orange-500 text-white text-xs font-medium">
+                                <Avatar className="h-8 w-8 transition-transform group-hover:scale-105">
+                                    <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
                                         {getInitials(user?.first_name, user?.last_name)}
                                     </AvatarFallback>
                                 </Avatar>

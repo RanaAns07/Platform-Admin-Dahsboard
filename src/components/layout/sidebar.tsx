@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import NextImage from "next/image";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import {
     Dumbbell,
@@ -61,28 +63,46 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     const pathname = usePathname();
+    const { theme, resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const logoSrc = mounted && (theme === 'dark' || resolvedTheme === 'dark')
+        ? "/lookfitter Dark.png"
+        : "/lookfitter Light.png";
 
     return (
         <aside
             className={cn(
-                "fixed left-0 top-0 z-40 h-screen bg-sidebar-background border-r border-sidebar-border transition-all duration-300 ease-in-out",
+                "fixed left-0 top-0 z-40 h-screen bg-sidebar-background/60 backdrop-blur-xl border-r border-sidebar-border transition-all duration-300 ease-in-out",
                 collapsed ? "w-[70px]" : "w-[260px]"
             )}
         >
             <div className="flex h-full flex-col">
                 {/* Logo */}
                 <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
-                    <Link href="/dashboard" className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/20">
-                            <Dumbbell className="h-5 w-5 text-white" />
+                    <Link href="/dashboard" className="flex items-center gap-2">
+                        <div className="flex h-10 w-10 items-center justify-center">
+                            {mounted ? (
+                                <NextImage
+                                    src={logoSrc}
+                                    alt="LookFitter Logo"
+                                    width={40}
+                                    height={40}
+                                    className="object-contain"
+                                    priority
+                                />
+                            ) : (
+                                <div className="h-10 w-10 bg-muted animate-pulse rounded-md" />
+                            )}
                         </div>
                         {!collapsed && (
                             <div className="flex flex-col">
-                                <span className="font-semibold text-sm text-sidebar-foreground">
-                                    Forward Thinking
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                    Fitness Platform
+                                <span className="font-bold text-lg tracking-tight text-sidebar-foreground">
+                                    LookFitter
                                 </span>
                             </div>
                         )}

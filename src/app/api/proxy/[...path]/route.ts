@@ -66,11 +66,17 @@ async function proxyRequest(
     headers.set('Host', '3.147.66.56');
 
     try {
-        // Get body for POST/PUT/PATCH
+        // Get body for POST/PUT/PATCH/DELETE
         let body: string | undefined = undefined;
-        if (['POST', 'PUT', 'PATCH'].includes(method)) {
-            body = await request.text();
+        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+            try {
+                body = await request.text();
+            } catch (e) {
+                // Ignore body parsing errors
+            }
         }
+
+        console.log(`Proxying ${method} to:`, targetUrl, body ? `with body: ${body.substring(0, 100)}...` : '');
 
         const response = await fetch(targetUrl, {
             method,
@@ -82,8 +88,8 @@ async function proxyRequest(
         // Get response body
         const responseBody = await response.text();
 
-        // Return the proxied response
-        return new NextResponse(responseBody, {
+        // Return the proxied response. NextResponse does not allow a body for 204, 205, and 304.
+        return new NextResponse(response.status === 204 || response.status === 205 || response.status === 304 ? null : responseBody, {
             status: response.status,
             statusText: response.statusText,
             headers: {

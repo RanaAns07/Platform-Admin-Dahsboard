@@ -27,14 +27,24 @@ export interface LoginCredentials {
 }
 
 // Tenant (Gym) types
+export interface TenantBranding {
+    primary_color?: string;
+    secondary_color?: string;
+    logo_url?: string;
+    font_family?: string;
+}
+
 export interface Tenant {
     id: string;
-    name: string;  // Backend uses 'name', not 'gym_name'
+    name: string;
+    gym_name?: string; // Some endpoints might use gym_name
     subdomain: string;
-    branding?: Record<string, unknown>;
+    branding?: TenantBranding;
     is_active: boolean;
     created_at: string;
     current_subscription?: TenantSubscription;
+    feature_overrides?: FeatureOverride[];
+    entitlements?: Record<string, any>;
 }
 
 export interface TenantSubscription {
@@ -52,6 +62,14 @@ export interface CreateTenantPayload {
     owner_email: string;
     owner_password: string;
     initial_plan_id: string;
+    branding?: TenantBranding;
+}
+
+export interface UpdateTenantPayload {
+    name?: string;
+    gym_name?: string;
+    is_active?: boolean;
+    branding?: TenantBranding;
 }
 
 // Plan types

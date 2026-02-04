@@ -17,9 +17,15 @@ export function useFeatures() {
             const response = await api.get<PaginatedResponse<Feature> | Feature[]>('/v1/platform/features/');
             // Handle both paginated and non-paginated responses
             if ('results' in response.data) {
-                return response.data.results;
+                return {
+                    results: response.data.results,
+                    total: response.data.count
+                };
             }
-            return response.data;
+            return {
+                results: response.data,
+                total: response.data.length
+            };
         },
     });
 }

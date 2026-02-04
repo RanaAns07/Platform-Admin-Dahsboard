@@ -117,7 +117,7 @@ export function AssignPlanDialog({ open, onOpenChange, tenant }: AssignPlanDialo
                                                     <Loader2 className="h-4 w-4 animate-spin" />
                                                 </div>
                                             ) : (
-                                                plans?.map((plan) => (
+                                                (plans?.results || []).map((plan) => (
                                                     <SelectItem key={plan.id} value={plan.id}>
                                                         <div className="flex justify-between items-center w-full gap-2">
                                                             <span className="font-medium">{plan.name}</span>

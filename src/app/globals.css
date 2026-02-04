@@ -1,100 +1,99 @@
 @import "tailwindcss";
 
-/* Forward Thinking Fitness - Design System */
-/* Using Energetic Orange (#F97316) as primary accent with Slate/Zinc neutrals */
+/* LookFitter - Design System */
+/* Using Deep Purple (#8B5CF6) as primary accent with Glassmorphism and dark mode support */
 
 :root {
-  /* Base colors */
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  
+  /* LookFitter - Purplish Theme */
+  --background: 270 20% 98%;
+  --foreground: 270 40% 10%;
+
   /* Card */
   --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  
+  --card-foreground: 270 40% 10%;
+
   /* Popover */
   --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-  
-  /* Primary - Energetic Orange */
-  --primary: 24.6 95% 53.1%;
+  --popover-foreground: 270 40% 10%;
+
+  /* Primary - LookFitter Purple */
+  --primary: 270 70% 60%;
   --primary-foreground: 0 0% 100%;
-  
+
   /* Secondary */
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  
+  --secondary: 270 30% 92%;
+  --secondary-foreground: 270 50% 20%;
+
   /* Muted */
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  
+  --muted: 270 20% 94%;
+  --muted-foreground: 270 20% 40%;
+
   /* Accent */
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  
+  --accent: 270 30% 92%;
+  --accent-foreground: 270 50% 20%;
+
   /* Destructive */
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  
+
   /* Border */
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 24.6 95% 53.1%;
-  
+  --border: 270 20% 88%;
+  --input: 270 20% 88%;
+  --ring: 270 70% 60%;
+
   /* Radius */
-  --radius: 0.5rem;
-  
+  --radius: 0.75rem;
+
   /* Sidebar */
-  --sidebar-background: 0 0% 98%;
-  --sidebar-foreground: 240 5.3% 26.1%;
-  --sidebar-primary: 24.6 95% 53.1%;
+  --sidebar-background: 270 30% 98%;
+  --sidebar-foreground: 270 40% 20%;
+  --sidebar-primary: 270 70% 60%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 4.8% 95.9%;
-  --sidebar-accent-foreground: 240 5.9% 10%;
-  --sidebar-border: 220 13% 91%;
-  --sidebar-ring: 24.6 95% 53.1%;
+  --sidebar-accent: 270 30% 92%;
+  --sidebar-accent-foreground: 270 50% 20%;
+  --sidebar-border: 270 20% 90%;
+  --sidebar-ring: 270 70% 60%;
 }
 
 .dark {
-  /* Dark mode colors */
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  
-  /* Primary - Energetic Orange (slightly lighter for dark mode) */
-  --primary: 24.6 95% 53.1%;
+  /* LookFitter Dark Mode */
+  --background: 270 30% 4%;
+  --foreground: 270 10% 98%;
+
+  --card: 270 30% 6%;
+  --card-foreground: 270 10% 98%;
+
+  --popover: 270 30% 6%;
+  --popover-foreground: 270 10% 98%;
+
+  --primary: 270 70% 65%;
   --primary-foreground: 0 0% 100%;
-  
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  
+
+  --secondary: 270 30% 12%;
+  --secondary-foreground: 270 10% 98%;
+
+  --muted: 270 30% 12%;
+  --muted-foreground: 270 10% 65%;
+
+  --accent: 270 30% 12%;
+  --accent-foreground: 270 10% 98%;
+
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 24.6 95% 53.1%;
-  
+
+  --border: 270 30% 15%;
+  --input: 270 30% 15%;
+  --ring: 270 70% 65%;
+
   /* Sidebar dark */
-  --sidebar-background: 240 5.9% 10%;
-  --sidebar-foreground: 240 4.8% 95.9%;
-  --sidebar-primary: 24.6 95% 53.1%;
+  --sidebar-background: 270 35% 3%;
+  --sidebar-foreground: 270 10% 94%;
+  --sidebar-primary: 270 70% 65%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 3.7% 15.9%;
-  --sidebar-accent-foreground: 240 4.8% 95.9%;
-  --sidebar-border: 240 3.7% 15.9%;
-  --sidebar-ring: 24.6 95% 53.1%;
+  --sidebar-accent: 270 30% 12%;
+  --sidebar-accent-foreground: 270 10% 98%;
+  --sidebar-border: 270 30% 10%;
+  --sidebar-ring: 270 70% 65%;
 }
 
 @theme inline {
@@ -168,6 +167,7 @@ body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -178,6 +178,7 @@ body {
     transform: translateY(-10px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -192,25 +193,27 @@ body {
   animation: slide-in-from-top 0.3s ease-out;
 }
 
-/* Glass effect for login card */
+/* Glass effect - Enhanced for LookFitter */
 .glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .dark .glass {
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 5, 25, 0.5);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Gradient background */
+/* Gradient background - Deep Purple/Navy */
 .gradient-bg {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%);
+  background: linear-gradient(135deg, hsl(270 40% 6%) 0%, hsl(270 50% 12%) 50%, hsl(270 40% 6%) 100%);
 }
 
-/* Primary gradient (Orange) */
+/* Primary gradient (Purple) */
 .gradient-primary {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  background: linear-gradient(135deg, hsl(270 70% 60%) 0%, hsl(270 80% 45%) 100%);
 }

@@ -177,7 +177,7 @@ export default function FeaturesPage() {
     ];
 
     const table = useReactTable({
-        data: features || [],
+        data: features?.results || [],
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -233,7 +233,7 @@ export default function FeaturesPage() {
                         <div>
                             <CardTitle className="text-lg">All Features</CardTitle>
                             <CardDescription>
-                                {features?.length || 0} features configured
+                                {features?.total || 0} features configured
                             </CardDescription>
                         </div>
                         <div className="relative w-full sm:w-72">

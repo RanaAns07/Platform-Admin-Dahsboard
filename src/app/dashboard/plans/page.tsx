@@ -153,13 +153,21 @@ export default function PlansPage() {
             header: "Entitlements",
             cell: ({ row }) => {
                 const entitlements = row.original.entitlements;
-                const count = entitlements?.length || 0;
+                if (!entitlements || entitlements.length === 0) {
+                    return <span className="text-muted-foreground text-xs italic">No features</span>;
+                }
+
                 return (
-                    <div className="flex items-center gap-1.5">
-                        <Zap className="h-4 w-4 text-purple-500" />
-                        <span className="text-sm">
-                            {count} {count === 1 ? "entitlement" : "entitlements"}
-                        </span>
+                    <div className="flex flex-wrap gap-1 max-w-[200px]">
+                        {entitlements.map((ent) => (
+                            <Badge
+                                key={ent.id}
+                                variant="secondary"
+                                className="text-[10px] px-1.5 py-0 h-5 bg-purple-500/5 hover:bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400 font-medium"
+                            >
+                                {ent.feature_key}: {String(ent.value)}
+                            </Badge>
+                        ))}
                     </div>
                 );
             },
@@ -219,7 +227,7 @@ export default function PlansPage() {
     ];
 
     const table = useReactTable({
-        data: plans || [],
+        data: plans?.results || [],
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -275,7 +283,7 @@ export default function PlansPage() {
                         <div>
                             <CardTitle className="text-lg">All Plans</CardTitle>
                             <CardDescription>
-                                {plans?.length || 0} plans available
+                                {plans?.total || 0} plans available
                             </CardDescription>
                         </div>
                         <div className="relative w-full sm:w-72">

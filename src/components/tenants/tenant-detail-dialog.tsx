@@ -92,13 +92,38 @@ export function TenantDetailDialog({ open, onOpenChange, tenant }: TenantDetailD
                                 </div>
                             </div>
 
-                            {tenant.branding && Object.keys(tenant.branding).length > 0 && (
+                            {tenant.branding && (
                                 <div className="mt-6 border-t pt-4">
                                     <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                        <Shield className="h-4 w-4" /> Branding Configuration
+                                        <Shield className="h-4 w-4 text-orange-500" /> Branding Configuration
                                     </h4>
-                                    <div className="bg-muted/30 p-3 rounded-md text-sm font-mono overflow-auto max-h-40">
-                                        <pre>{JSON.stringify(tenant.branding, null, 2)}</pre>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <span className="text-xs text-muted-foreground">Primary Color</span>
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-4 w-4 rounded border" style={{ backgroundColor: tenant.branding.primary_color }} />
+                                                <span className="text-sm font-mono">{tenant.branding.primary_color}</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-xs text-muted-foreground">Secondary Color</span>
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-4 w-4 rounded border" style={{ backgroundColor: tenant.branding.secondary_color }} />
+                                                <span className="text-sm font-mono">{tenant.branding.secondary_color}</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <span className="text-xs text-muted-foreground">Font Family</span>
+                                            <p className="text-sm">{tenant.branding.font_family || 'Default'}</p>
+                                        </div>
+                                        {tenant.branding.logo_url && (
+                                            <div className="space-y-1">
+                                                <span className="text-xs text-muted-foreground">Logo URL</span>
+                                                <p className="text-sm truncate" title={tenant.branding.logo_url}>
+                                                    {tenant.branding.logo_url}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}

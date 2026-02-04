@@ -1,5 +1,11 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { ApiError } from '@/types';
+import {
+    ApiError,
+    Tenant,
+    CreateTenantPayload,
+    UpdateTenantPayload,
+    PaginatedResponse
+} from '@/types';
 
 // Create axios instance pointing to the proxy
 const api = axios.create({
@@ -64,6 +70,7 @@ api.interceptors.response.use(
             const refreshToken = getRefreshToken();
             if (refreshToken) {
                 try {
+                    // Use plain axios to avoid infinite loops
                     const response = await axios.post('/api/proxy/v1/users/auth/refresh/', {
                         refresh: refreshToken,
                     });
@@ -102,9 +109,9 @@ api.interceptors.response.use(
         } else if (error.code === 'ERR_NETWORK' || !error.response) {
             errorMessage = 'Unable to connect to the server. Please check your internet connection.';
         } else if (error.response?.status === 400) {
-            errorMessage = error.response.data?.detail || 'Invalid request. Please check your input.';
+            errorMessage = (error.response.data as any)?.detail || error.response.data?.message || 'Invalid request. Please check your input.';
         } else if (error.response?.status === 401) {
-            errorMessage = error.response.data?.detail || 'Invalid email or password.';
+            errorMessage = (error.response.data as any)?.detail || 'Session expired. Please login again.';
         } else if (error.response?.status === 403) {
             errorMessage = 'Access denied. You do not have permission to perform this action.';
         } else if (error.response?.status === 404) {
@@ -125,5 +132,32 @@ api.interceptors.response.use(
         return Promise.reject(apiError);
     }
 );
+
+// Tenant Services
+export const tenantService = {
+    getTenants: async (params?: any) => {
+        const response = await api.get<PaginatedResponse<Tenant>>('/v1/platform/tenants/', { params });
+        return response.data;
+    },
+    getTenant: async (id: string) => {
+        const response = await api.get<Tenant>(`/v1/platform/tenants/${id}/`);
+        return response.data;
+    },
+    createTenant: async (data: CreateTenantPayload) => {
+        const response = await api.post<Tenant>('/v1/platform/tenants/', data);
+        return response.data;
+    },
+    updateTenant: async (id: string, data: UpdateTenantPayload) => {
+        const response = await api.patch<Tenant>(`/v1/platform/tenants/${id}/`, data);
+        return response.data;
+    },
+    deleteTenant: async (id: string) => {
+        await api.delete(`/v1/platform/tenants/${id}/`);
+    },
+    assignPlan: async (tenantId: string, planId: string) => {
+        const response = await api.post(`/v1/platform/tenants/${tenantId}/assign_plan/`, { plan_id: planId });
+        return response.data;
+    }
+};
 
 export default api;

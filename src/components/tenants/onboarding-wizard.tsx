@@ -68,6 +68,12 @@ const wizardSchema = z.object({
         .regex(/[0-9]/, "Password must contain at least one number"),
     confirm_password: z.string(),
     initial_plan_id: z.string().min(1, "Please select a plan"),
+    branding: z.object({
+        primary_color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex color").optional().or(z.literal("")),
+        secondary_color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex color").optional().or(z.literal("")),
+        logo_url: z.string().url("Invalid URL").optional().or(z.literal("")),
+        font_family: z.string().optional().or(z.literal("")),
+    }).optional(),
 }).refine((data) => data.owner_password === data.confirm_password, {
     message: "Passwords don't match",
     path: ["confirm_password"],
@@ -81,9 +87,10 @@ interface OnboardingWizardProps {
 
 const steps = [
     { id: 1, title: "Gym Details", icon: Building2 },
-    { id: 2, title: "Owner Account", icon: User },
-    { id: 3, title: "Select Plan", icon: CreditCard },
-    { id: 4, title: "Review", icon: CheckCircle2 },
+    { id: 2, title: "Branding", icon: Eye }, // New branding step
+    { id: 3, title: "Owner Account", icon: User },
+    { id: 4, title: "Select Plan", icon: CreditCard },
+    { id: 5, title: "Review", icon: CheckCircle2 },
 ];
 
 export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
@@ -102,6 +109,12 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
             owner_password: "",
             confirm_password: "",
             initial_plan_id: "",
+            branding: {
+                primary_color: "#f97316",
+                secondary_color: "#1e293b",
+                logo_url: "",
+                font_family: "Inter",
+            },
         },
         mode: "onChange",
     });
@@ -126,20 +139,23 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                 fieldsToValidate = ["gym_name", "subdomain"];
                 break;
             case 2:
-                fieldsToValidate = ["owner_email", "owner_password", "confirm_password"];
+                fieldsToValidate = ["branding.primary_color", "branding.secondary_color", "branding.logo_url", "branding.font_family"];
                 break;
             case 3:
+                fieldsToValidate = ("owner_email", "owner_password", "confirm_password" as any);
+                break;
+            case 4:
                 fieldsToValidate = ["initial_plan_id"];
                 break;
         }
 
-        const result = await form.trigger(fieldsToValidate);
+        const result = await form.trigger(fieldsToValidate as any);
         return result;
     };
 
     const handleNext = async () => {
         const isValid = await validateStep();
-        if (isValid && currentStep < 4) {
+        if (isValid && currentStep < 5) {
             setCurrentStep(currentStep + 1);
         }
     };
@@ -158,6 +174,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                 owner_email: values.owner_email,
                 owner_password: values.owner_password,
                 initial_plan_id: values.initial_plan_id,
+                branding: values.branding,
             });
             toast.success("Tenant created successfully!");
             onClose();
@@ -169,7 +186,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
         }
     };
 
-    const selectedPlan = plans?.find(
+    const selectedPlan = (plans?.results || []).find(
         (p) => p.id.toString() === watchedValues.initial_plan_id
     );
 
@@ -297,8 +314,92 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                             </div>
                         )}
 
-                        {/* Step 2: Owner Account */}
+                        {/* Step 2: Branding */}
                         {currentStep === 2 && (
+                            <div className="space-y-4 animate-fade-in">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="branding.primary_color"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Primary Color</FormLabel>
+                                                <FormControl>
+                                                    <div className="flex gap-2">
+                                                        <Input type="color" {...field} className="w-12 p-1 h-10" />
+                                                        <Input placeholder="#f97316" {...field} />
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="branding.secondary_color"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Secondary Color</FormLabel>
+                                                <FormControl>
+                                                    <div className="flex gap-2">
+                                                        <Input type="color" {...field} className="w-12 p-1 h-10" />
+                                                        <Input placeholder="#1e293b" {...field} />
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
+                                <FormField
+                                    control={form.control}
+                                    name="branding.logo_url"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Logo URL</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="https://example.com/logo.png"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormDescription>
+                                                Direct link to the gym&apos;s logo image
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="branding.font_family"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Font Family</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a font" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="Inter">Inter</SelectItem>
+                                                    <SelectItem value="Roboto">Roboto</SelectItem>
+                                                    <SelectItem value="Open Sans">Open Sans</SelectItem>
+                                                    <SelectItem value="Montserrat">Montserrat</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
+
+                        {/* Step 3: Owner Account */}
+                        {currentStep === 3 && (
                             <div className="space-y-4 animate-fade-in">
                                 <FormField
                                     control={form.control}
@@ -392,8 +493,8 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                             </div>
                         )}
 
-                        {/* Step 3: Select Plan */}
-                        {currentStep === 3 && (
+                        {/* Step 4: Select Plan */}
+                        {currentStep === 4 && (
                             <div className="space-y-4 animate-fade-in">
                                 <FormField
                                     control={form.control}
@@ -413,7 +514,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                                                             <Loader2 className="h-4 w-4 animate-spin" />
                                                         </div>
                                                     ) : (
-                                                        plans?.map((plan) => (
+                                                        (plans?.results || []).map((plan) => (
                                                             <SelectItem
                                                                 key={plan.id}
                                                                 value={plan.id.toString()}
@@ -451,8 +552,8 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                             </div>
                         )}
 
-                        {/* Step 4: Review */}
-                        {currentStep === 4 && (
+                        {/* Step 5: Review */}
+                        {currentStep === 5 && (
                             <div className="space-y-4 animate-fade-in">
                                 <div className="rounded-lg border divide-y">
                                     <div className="p-4">
@@ -464,6 +565,14 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                                         <p className="font-medium">
                                             {watchedValues.subdomain}.forwardthinkingfitness.com
                                         </p>
+                                    </div>
+                                    <div className="p-4">
+                                        <p className="text-sm text-muted-foreground">Branding</p>
+                                        <div className="flex gap-2 mt-1">
+                                            <div className="w-6 h-6 rounded border" style={{ backgroundColor: watchedValues.branding?.primary_color }} title="Primary Color" />
+                                            <div className="w-6 h-6 rounded border" style={{ backgroundColor: watchedValues.branding?.secondary_color }} title="Secondary Color" />
+                                            <span className="text-sm">{watchedValues.branding?.font_family}</span>
+                                        </div>
                                     </div>
                                     <div className="p-4">
                                         <p className="text-sm text-muted-foreground">Owner Email</p>
@@ -480,7 +589,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
 
                                 {createTenant.isError && (
                                     <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-                                        Failed to create tenant. Please try again.
+                                        {createTenant.error instanceof Error ? createTenant.error.message : "Failed to create tenant. Please try again."}
                                     </div>
                                 )}
                             </div>
@@ -503,7 +612,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                     Back
                 </Button>
 
-                {currentStep < 4 ? (
+                {currentStep < 5 ? (
                     <Button type="button" onClick={handleNext}>
                         Next
                         <ChevronRight className="ml-2 h-4 w-4" />

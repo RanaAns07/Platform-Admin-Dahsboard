@@ -22,15 +22,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
 import { useSetOverride } from "@/hooks/use-tenants";
 import { useFeatures } from "@/hooks/use-features";
 import { Tenant, Feature, ApiError } from "@/types";
@@ -47,41 +38,37 @@ export function ManageOverridesDialog({ open, onOpenChange, tenant }: ManageOver
     const setOverride = useSetOverride();
     const { data: features, isLoading: featuresLoading } = useFeatures();
     const [selectedFeatureId, setSelectedFeatureId] = useState<string>("");
+    const [overrideValue, setOverrideValue] = useState<string | number | boolean>("");
 
     // Find selected feature to determine input type
-    const selectedFeature = features?.find(f => f.id === selectedFeatureId);
+    const selectedFeature = (features?.results || []).find(f => f.id === selectedFeatureId);
+
+    const handleFeatureChange = (id: string) => {
+        setSelectedFeatureId(id);
+        const feature = (features?.results || []).find(f => f.id === id);
+        if (feature) {
+            if (feature.data_type === "bool") {
+                setOverrideValue(false);
+            } else if (feature.data_type === "int") {
+                setOverrideValue(0);
+            } else {
+                setOverrideValue("");
+            }
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!tenant || !selectedFeatureId || !selectedFeature) return;
 
-        const formData = new FormData(e.target as HTMLFormElement);
-        let value: string | number | boolean = formData.get("value") as string;
-
-        // Parse value based on feature type
-        if (selectedFeature.data_type === "bool") {
-            // For switch/checkbox, existence in formData might differ based on impl, 
-            // but let's assume we handle it via state or check the form element
-            // simpler to use controlled state for complex forms, but here we can try:
-            const form = e.target as HTMLFormElement;
-            const switchInput = form.querySelector('[name="value"]') as HTMLInputElement;
-            value = switchInput?.checked || false;
-        } else if (selectedFeature.data_type === "int") {
-            value = parseInt(value, 10);
-            if (isNaN(value)) {
-                toast.error("Please enter a valid number");
-                return;
-            }
-        }
-
         try {
             await setOverride.mutateAsync({
                 tenantId: tenant.id,
                 featureId: selectedFeatureId,
-                value: value,
+                value: overrideValue,
             });
             toast.success(`Override set for ${selectedFeature.key}`);
-            // Don't close immediately, allow setting more
+            // Reset or keep? Let's keep so they can tweak it if needed
         } catch (error) {
             const apiError = error as ApiError;
             const errorMessage = apiError?.message || "Failed to set override";
@@ -109,7 +96,7 @@ export function ManageOverridesDialog({ open, onOpenChange, tenant }: ManageOver
                         <Label>Select Feature to Override</Label>
                         <Select
                             value={selectedFeatureId}
-                            onValueChange={setSelectedFeatureId}
+                            onValueChange={handleFeatureChange}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Choose a feature..." />
@@ -120,7 +107,7 @@ export function ManageOverridesDialog({ open, onOpenChange, tenant }: ManageOver
                                         <Loader2 className="h-4 w-4 animate-spin" />
                                     </div>
                                 ) : (
-                                    features?.map((f) => (
+                                    (features?.results || []).map((f) => (
                                         <SelectItem key={f.id} value={f.id}>
                                             <div className="flex items-center gap-2">
                                                 <span>{f.key}</span>
@@ -134,6 +121,48 @@ export function ManageOverridesDialog({ open, onOpenChange, tenant }: ManageOver
                             </SelectContent>
                         </Select>
                     </div>
+
+                    {/* Current Overrides Section */}
+                    {tenant?.feature_overrides && tenant.feature_overrides.length > 0 && (
+                        <div className="space-y-2">
+                            <Label className="text-xs uppercase text-muted-foreground font-semibold">Current Active Overrides</Label>
+                            <div className="border rounded-md divide-y overflow-hidden max-h-[150px] overflow-y-auto">
+                                {tenant.feature_overrides.map((override) => (
+                                    <div key={override.id} className="p-2 text-sm flex justify-between items-center bg-card">
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{override.feature_key}</span>
+                                            <span className="text-xs text-muted-foreground">Value: {String(override.value)}</span>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            onClick={() => handleFeatureChange(override.feature)}
+                                        >
+                                            Edit
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Entitlements Section (from list response) */}
+                    {tenant?.entitlements && Object.keys(tenant.entitlements).length > 0 && (
+                        <div className="space-y-2">
+                            <Label className="text-xs uppercase text-muted-foreground font-semibold">Active Entitlements</Label>
+                            <div className="border rounded-md divide-y overflow-hidden max-h-[150px] overflow-y-auto">
+                                {Object.entries(tenant.entitlements).map(([key, value]) => (
+                                    <div key={key} className="p-2 text-sm flex justify-between items-center bg-card">
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{key}</span>
+                                            <span className="text-xs text-muted-foreground">Value: {String(value)}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {selectedFeature && (
                         <form onSubmit={handleSubmit} className="p-4 border rounded-lg bg-muted/20 space-y-4">
@@ -149,10 +178,15 @@ export function ManageOverridesDialog({ open, onOpenChange, tenant }: ManageOver
                             )}
 
                             <div className="space-y-2">
-                                <FormLabel>Override Value</FormLabel>
+                                <Label>Override Value</Label>
                                 {selectedFeature.data_type === "bool" ? (
                                     <div className="flex items-center space-x-2">
-                                        <Switch name="value" id="feature-value" />
+                                        <Switch
+                                            name="value"
+                                            id="feature-value"
+                                            checked={overrideValue as boolean}
+                                            onCheckedChange={(checked) => setOverrideValue(checked)}
+                                        />
                                         <label htmlFor="feature-value" className="text-sm text-muted-foreground">
                                             Enable this feature
                                         </label>
@@ -162,6 +196,8 @@ export function ManageOverridesDialog({ open, onOpenChange, tenant }: ManageOver
                                         type="number"
                                         name="value"
                                         placeholder="Enter numeric limit (e.g. 10)"
+                                        value={overrideValue as number}
+                                        onChange={(e) => setOverrideValue(parseInt(e.target.value, 10))}
                                         required
                                     />
                                 ) : (
@@ -169,6 +205,8 @@ export function ManageOverridesDialog({ open, onOpenChange, tenant }: ManageOver
                                         type="text"
                                         name="value"
                                         placeholder="Enter value"
+                                        value={overrideValue as string}
+                                        onChange={(e) => setOverrideValue(e.target.value)}
                                         required
                                     />
                                 )}
